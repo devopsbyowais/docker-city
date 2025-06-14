@@ -1,0 +1,48 @@
+version: '3.9'
+
+services:
+  nginxcity:
+    build: ./city-nginx
+    container_name: nginxcity
+    networks:
+      dockernet:
+        ipv4_address: 172.20.0.2
+
+  dnscity:
+    build: ./city-dns
+    container_name: dnscity
+    networks:
+      dockernet:
+        ipv4_address: 172.20.0.3
+    ports:
+      - "5353:53/udp"
+
+  dbcity:
+    build: ./city-db
+    container_name: dbcity
+    environment:
+      POSTGRES_DB: dockertown
+      POSTGRES_USER: mayor
+      POSTGRES_PASSWORD: secret
+    networks:
+      dockernet:
+        ipv4_address: 172.20.0.4
+
+  proxycity:
+    build: ./city-proxy
+    container_name: proxycity
+    depends_on:
+      - nginxcity
+    ports:
+      - "8080:80"
+    networks:
+      dockernet:
+        ipv4_address: 172.20.0.5
+
+networks:
+  dockernet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
